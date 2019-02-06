@@ -3,8 +3,12 @@
 ![](public/buk.jpg)
 
 We BUK every day.
+
 This is a visualization of how many bucks we did every day.
+
 But we are one buck short.
+
+Source: [Chicken Hat Factory](http://nellucnhoj.com/post/134265246939/buck-tumblr-twitter-facebook-buy-my-books)
 
 ## Local Demo
 
