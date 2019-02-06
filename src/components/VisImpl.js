@@ -8,6 +8,7 @@ export default class SightsVisImpl {
         this.selection = selection;
 
         this.init();
+        this.render();
     }
 
     updateChart(data, settings, selection) {
@@ -15,7 +16,7 @@ export default class SightsVisImpl {
         this.data = this.formatData(data);
         this.selection = selection;
 
-        this.updateSVGBase();
+        this.update();
         this.render();
     }
 
@@ -27,8 +28,7 @@ export default class SightsVisImpl {
     }
 
     formatData(rawData){
-        console.log("we got some sweet data");
-        console.log(rawData);
+        console.log("we got some sweet data: ", rawData);
 
         return rawData;
     }
@@ -37,11 +37,6 @@ export default class SightsVisImpl {
      * Setup all static chart settings here
      */
     init() {
-        this.initSVGBase();
-        this.render();
-    }
-
-    initSVGBase() {
         // create new svg elements
         this.svg = d3.select(this.node).append('svg')
             .attr('class', 'chart')
@@ -52,35 +47,39 @@ export default class SightsVisImpl {
             .attr('class', 'content');
     }
 
-    updateSVGBase() {
+    update() {
         // update new svg elements
         this.svg
             .attr('width', this.settings.width)
             .attr('height', this.settings.height);
     }
 
-    renderContent(data) {
+    renderContent(node, data) {
         let t = this.getTransition();
 
-        let dataJoin = this.content.selectAll(".data")
+        let dataJoin = node.selectAll(".data")
             .data(data);
 
         // Enter
         let dataEnter = dataJoin.enter()
             .append("g")
             .attr("class", "data")
-            .attr('transform', (d) => 'translate(' + [d*10, 40] + ')');
+            .attr('transform', (d) => 'translate(' + [d*100, 100] + ')');
+
+        dataEnter.append("circle").attr("class", "graphic");
 
         // Update + Enter
         dataEnter
             .merge(dataJoin)
             .transition(t)
-            .attr('transform', (d,i) => 'translate(' + [d*10, 40] + ')');
+            .attr('transform', (d,i) => 'translate(' + [d*100, 100] + ')');
+
 
         dataEnter
-            .append("circle")
-            .attr("fill", (d) => this.calculateColor(d))
-            .attr("r", (d) => 5)
+            .merge(dataJoin)
+            .select(".graphic")
+            .attr("fill", (d,i) => this.calculateColor(i))
+            .attr("r", (d) => 100)
             .attr("stroke-width", "0.15px")
             .attr("stroke", "black");
 
@@ -98,6 +97,6 @@ export default class SightsVisImpl {
     }
 
     render() {
-        this.renderContent(this.data);
+        this.renderContent(this.content, this.data);
     }
 }

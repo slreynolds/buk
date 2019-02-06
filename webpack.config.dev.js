@@ -3,7 +3,7 @@ const webpack = require('webpack');
 
 module.exports = {
   mode: 'development',
-  devtool: 'cheap-module-eval-source-map',
+  devtool: 'source-map',
 
   entry: [
     // entry to react
@@ -42,7 +42,6 @@ module.exports = {
       }
     ]
   },
-
 
   devServer: {
       host: '0.0.0.0',

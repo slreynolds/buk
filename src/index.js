@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import Index from './pages/index';
+import MainPage from './pages/MainPage';
 
-ReactDOM.render(<Index />, document.querySelector('#root'));
+ReactDOM.render(<MainPage />, document.querySelector('#root'));

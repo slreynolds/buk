@@ -33,20 +33,21 @@ const styles = theme => ({
   },
 });
 
-class Index extends Component {
+class MainPage extends Component {
   constructor(props) {
     super(props);
 
     // Initial component state
     this.state = {
       data: [],
+      loading: true,
       height: 600,
       width: 1400
     };
   }
 
   componentDidMount(){
-    this.setState({data: [1,2,3,4,5]});
+    this.setState({loading: false, data: [1,2,3,4,5]});
   }
 
   getChartSettings(){
@@ -72,6 +73,8 @@ class Index extends Component {
   }
 
   renderVisualization(){
+    if(!this.state.data || this.state.data.length === 0)
+        return <div>No Data</div>;
 
     return <Vis data={this.state.data} settings={this.getChartSettings()} />;
   }
@@ -115,7 +118,7 @@ class Index extends Component {
     return (
       <React.Fragment>
         <Typography variant="h4">
-          Vis
+          VisBarebones
         </Typography>
       </React.Fragment>
     )
@@ -123,4 +126,4 @@ class Index extends Component {
 
 }
 
-export default withRoot(withStyles(styles)(Index));
+export default withRoot(withStyles(styles)(MainPage));
