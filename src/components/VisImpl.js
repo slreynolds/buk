@@ -26,9 +26,24 @@ export default class SightsVisImpl {
             height: 500,
         }
     }
+//{date: '11/16/18', time: '09:53', user: 'Steven', message: 'BUK'},
 
     formatData(rawData){
         console.log("we got some sweet data: ", rawData);
+        this.timeWeek = d3.timeMonday;
+        this.countDay = d => (d.getDay() + 6) % 7;
+        this.format = d3.format("+.2%");
+        this.formatDay = d => "MTWTFSS"[d.getDay()];
+        this.formatMonth = d3.timeFormat("%b");
+        this.color = d3.scaleSequential(d3.interpolatePuRd).domain([0, 6]);
+
+        this.cellSize = 17;
+        this.formatDate = d3.utcParse("%m/%d/%y");
+        this.toGermanTime = d => new Date(d).getDay() + "." + new Date(d).getMonth() + "." + new Date(d).getFullYear();
+
+        rawData.forEach(d => {
+            d.parsedDate = this.formatDate(d.date);
+        });
 
         return rawData;
     }
@@ -40,52 +55,132 @@ export default class SightsVisImpl {
         // create new svg elements
         this.svg = d3.select(this.node).append('svg')
             .attr('class', 'chart')
-            .attr('width', this.settings.width)
-            .attr('height', this.settings.height);
+            .style("font", "10px sans-serif")
+            .style("width", "100%")
+            .style("height", 155 * 3);
 
-        this.content = this.svg.append('g')
-            .attr('class', 'content');
+        this.node = this.svg.append('g')
+            .attr('class', 'node');
     }
 
-    update() {
-        // update new svg elements
-        this.svg
-            .attr('width', this.settings.width)
-            .attr('height', this.settings.height);
-    }
-
-    renderContent(node, data) {
+    // copied a lot from https://beta.observablehq.com/@mbostock/d3-calendar-view
+    renderYears(data, node){
         let t = this.getTransition();
+        let height = this.cellSize * 9;
 
-        let dataJoin = node.selectAll(".data")
-            .data(data);
+        const days = d3.nest()
+            .key(d => d.parsedDate)
+            .entries(data);
 
-        // Enter
-        let dataEnter = dataJoin.enter()
-            .append("g")
-            .attr("class", "data")
-            .attr('transform', (d) => 'translate(' + [d*100, 100] + ')');
+        const years = d3.nest()
+            .key(d => new Date(d.key).getFullYear())
+            .entries(days)
+            .reverse();
+            console.log(years);
+        const year = node.selectAll("g")
+            .data(years)
+            .join("g")
+            .attr("transform", (d, i) => `translate(40,${height * i + this.cellSize * 1.5})`);
 
-        dataEnter.append("circle").attr("class", "graphic");
+        year.append("text")
+            .attr("x", -5)
+            .attr("y", -5)
+            .attr("font-weight", "bold")
+            .attr("text-anchor", "end")
+            .text(d => d.key);
 
-        // Update + Enter
-        dataEnter
-            .merge(dataJoin)
-            .transition(t)
-            .attr('transform', (d,i) => 'translate(' + [d*100, 100] + ')');
+        year.append("g")
+            .attr("text-anchor", "end")
+            .selectAll("text")
+            .data(d3.range(7).map(i => new Date(1995, 0, i)))
+            .join("text")
+            .attr("x", -5)
+            .attr("y", d => (this.countDay(d) + 0.5) * this.cellSize)
+            .attr("dy", "0.31em")
+            .text(this.formatDay);
 
+        year.append("g")
+            .selectAll("rect")
+            .data(d => d.values)
+            .join("rect")
+            .attr("width", this.cellSize - 1)
+            .attr("height", this.cellSize - 1)
+            .attr("x", d => this.timeWeek.count(d3.timeYear(new Date(d.key)), new Date(d.key)) * this.cellSize + 0.5)
+            .attr("y", d => this.countDay(new Date(d.key)) * this.cellSize + 0.5)
+            .attr("fill", d => this.color(d.values.length))
+            .append("title")
+            .text(d => `${this.toGermanTime(d.key)}: ${d.values.length}`);
 
-        dataEnter
-            .merge(dataJoin)
-            .select(".graphic")
-            .attr("fill", (d,i) => this.calculateColor(i))
-            .attr("r", (d) => 100)
-            .attr("stroke-width", "0.15px")
-            .attr("stroke", "black");
+        const month = year.append("g")
+            .selectAll("g")
+            .data(d => d3.timeMonths(d3.timeMonth(new Date(d.values[0].key)), new Date(d.values[d.values.length - 1].key)))
+            .join("g");
 
-        // Exit
-        dataJoin.exit()
-            .remove();
+        month.append("text")
+            .attr("x", d => this.timeWeek.count(d3.timeYear(d), this.timeWeek.ceil(d)) * this.cellSize + 2)
+            .attr("y", -5)
+            .text(this.formatMonth);
+    }
+
+    // copied a lot from https://beta.observablehq.com/@mbostock/d3-calendar-view
+    renderFirstPersonBUKed(data, node){
+        let t = this.getTransition();
+        let height = this.cellSize * 9;
+
+        const days = d3.nest()
+            .key(d => d.parsedDate)
+            .entries(data);
+
+        const years = d3.nest()
+            .key(d => new Date(d.key).getFullYear())
+            .entries(days)
+            .reverse();
+
+            console.log(years);
+
+        const year = node.selectAll("g")
+            .data(years)
+            .join("g")
+            .attr("transform", (d, i) => `translate(40,${height * i + this.cellSize * 1.5})`);
+
+        year.append("text")
+            .attr("x", -5)
+            .attr("y", -5)
+            .attr("font-weight", "bold")
+            .attr("text-anchor", "end")
+            .text(d => d.key);
+
+        year.append("g")
+            .attr("text-anchor", "end")
+            .selectAll("text")
+            .data(d3.range(7).map(i => new Date(1995, 0, i)))
+            .join("text")
+            .attr("x", -5)
+            .attr("y", d => (this.countDay(d) + 0.5) * this.cellSize)
+            .attr("dy", "0.31em")
+            .text(this.formatDay);
+
+        year.append("g")
+            .selectAll("image")
+            .data(d => d.values)
+            .join("image")
+            .attr("width", this.cellSize - 1)
+            .attr("height", this.cellSize - 1)
+            .attr("x", d => this.timeWeek.count(d3.timeYear(new Date(d.key)), new Date(d.key)) * this.cellSize + 0.5)
+            .attr("y", d => this.countDay(new Date(d.key)) * this.cellSize + 0.5)
+            .attr("xlink:href", d => d.values[0].user + ".jpg")
+            .append("title")
+            .text(d => `${d.key}: ${d.values.length} - ${d.values[0].user}`);
+
+        const month = year.append("g")
+            .selectAll("g")
+            .data(d => d3.timeMonths(d3.timeMonth(new Date(d.values[0].key)), new Date(d.values[d.values.length - 1].key)))
+            .join("g");
+
+        month.append("text")
+            .attr("x", d => this.timeWeek.count(d3.timeYear(d), this.timeWeek.ceil(d)) * this.cellSize + 2)
+            .attr("y", -5)
+            .text(this.formatMonth);
     }
 
     getTransition(){
@@ -97,6 +192,7 @@ export default class SightsVisImpl {
     }
 
     render() {
-        this.renderContent(this.content, this.data);
+        this.renderYears(this.data, this.node);
+        //this.renderContent(this.data, this.node);
     }
 }

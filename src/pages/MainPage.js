@@ -13,6 +13,7 @@ import { withStyles } from '@material-ui/core/styles';
 import withRoot from '../withRoot';
 
 import Vis from '../components/Vis';
+import {bukdata} from '../dataset/buks';
 
 /**
  * Injected styles for this component
@@ -40,14 +41,9 @@ class MainPage extends Component {
     // Initial component state
     this.state = {
       data: [],
-      loading: true,
       height: 600,
       width: 1400
     };
-  }
-
-  componentDidMount(){
-    this.setState({loading: false, data: [1,2,3,4,5]});
   }
 
   getChartSettings(){
@@ -66,17 +62,13 @@ class MainPage extends Component {
     return (
       <div className={classes.root}>
         {this.renderHeader()}
-        {this.renderChartConfig()}
         {this.renderVisualization()}
       </div>
     );
   }
 
   renderVisualization(){
-    if(!this.state.data || this.state.data.length === 0)
-        return <div>No Data</div>;
-
-    return <Vis data={this.state.data} settings={this.getChartSettings()} />;
+    return <Vis data={bukdata} settings={this.getChartSettings()} />;
   }
 
   /**
@@ -118,8 +110,9 @@ class MainPage extends Component {
     return (
       <React.Fragment>
         <Typography variant="h4">
-          VisBarebones
+          BUK
         </Typography>
+        <img src='BUK.jpg' alt="Logo" />
       </React.Fragment>
     )
   }
