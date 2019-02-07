@@ -36,9 +36,11 @@ export default class SightsVisImpl {
         this.formatDay = d => "MTWTFSS"[d.getDay()];
         this.formatMonth = d3.timeFormat("%b");
         this.color = d3.scaleSequential(d3.interpolatePuRd).domain([0, 6]);
+        this.dayOfTimeColor = d3.scaleSequential(d3.interpolateRdBu).domain([0, 1440]);
 
         this.cellSize = 17;
         this.formatDate = d3.utcParse("%m/%d/%y");
+        this.timeParse = d3.utcParse("%H:%M");
         this.toGermanTime = d => new Date(d).getDay() + "." + new Date(d).getMonth() + "." + new Date(d).getFullYear();
 
         rawData.forEach(d => {
@@ -76,6 +78,7 @@ export default class SightsVisImpl {
             .key(d => new Date(d.key).getFullYear())
             .entries(days)
             .reverse();
+
             console.log(years);
         const year = node.selectAll("g")
             .data(years)
@@ -105,11 +108,11 @@ export default class SightsVisImpl {
             .join("rect")
             .attr("width", this.cellSize - 1)
             .attr("height", this.cellSize - 1)
-            .attr("x", d => this.timeWeek.count(d3.timeYear(new Date(d.key)), new Date(d.key)) * this.cellSize + 0.5)
+            .attr("x", d => this.timeWeek.count(d3.timeYear(new Date(d.key)), new Date(d.key)) * this.cellSize + 0.5 + new Date(d.key).getMonth()*10)
             .attr("y", d => this.countDay(new Date(d.key)) * this.cellSize + 0.5)
-            .attr("fill", d => this.color(d.values.length))
+            .attr("fill", d => this.getColorOfAverageTime(d))
             .append("title")
-            .text(d => `${this.toGermanTime(d.key)}: ${d.values.length}`);
+            .text(d => `${d.key}: ${d.values.length}`);
 
         const month = year.append("g")
             .selectAll("g")
@@ -168,7 +171,7 @@ export default class SightsVisImpl {
             .attr("height", this.cellSize - 1)
             .attr("x", d => this.timeWeek.count(d3.timeYear(new Date(d.key)), new Date(d.key)) * this.cellSize + 0.5)
             .attr("y", d => this.countDay(new Date(d.key)) * this.cellSize + 0.5)
-            .attr("xlink:href", d => d.values[0].user + ".jpg")
+            .attr("xlink:href", d => "")
             .append("title")
             .text(d => `${d.key}: ${d.values.length} - ${d.values[0].user}`);
 
@@ -183,6 +186,32 @@ export default class SightsVisImpl {
             .text(this.formatMonth);
     }
 
+    getColorOfBUKCount(d){
+        return this.color(d.values.length);
+    }
+
+    getColorOfAverageTime(d){
+        if(d.values.length != 3)
+            return "white";
+
+        let time = new Date((this.timeParse(d.values[0].time).getTime() +
+                    this.timeParse(d.values[1].time).getTime() +
+                    this.timeParse(d.values[2].time).getTime())/3);
+
+        return this.dayOfTimeColor(time.getHours()*60 + time.getMinutes());
+    }
+
+    getColorIfCorrectBUK(d){
+        return (d.values.length === 3 &&
+                d.values[0].message === "BUK" &&
+                d.values[1].message === "BUK" &&
+                d.values[2].message === "BUK") ? "green" : "red";
+    }
+
+    getImageHref(d){
+        return d.values[0] ? d.values[0].user + ".jpg" : "";
+    }
+
     getTransition(){
         return d3.transition().delay(0).duration(250).ease(d3.easeLinear);
     }
@@ -193,6 +222,6 @@ export default class SightsVisImpl {
 
     render() {
         this.renderYears(this.data, this.node);
-        //this.renderContent(this.data, this.node);
+        //this.renderFirstPersonBUKed(this.data, this.node);
     }
 }

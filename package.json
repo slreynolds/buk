@@ -1,7 +1,7 @@
 {
   "name": "bukvis",
   "version": "1.0.0",
-  "description": "buk Visualisierung",
+  "description": "Visualization of BUK",
   "main": "dist/bundle.js",
   "scripts": {
     "start": "webpack-dev-server  --inline --hot --config webpack.config.dev.js  --watch src/index.js"
