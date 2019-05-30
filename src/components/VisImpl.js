@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 
-export default class SightsVisImpl {
+export default class BukVisImpl {
     constructor(node, data, settings, selection) {
         this.node = node;
         this.settings = Object.assign(this.getDefaultSettings(), settings);
@@ -16,7 +16,6 @@ export default class SightsVisImpl {
         this.data = this.formatData(data);
         this.selection = selection;
 
-        this.update();
         this.render();
     }
 
@@ -79,7 +78,10 @@ export default class SightsVisImpl {
             .entries(days)
             .reverse();
 
-            console.log(years);
+        console.log(years);
+
+        node.selectAll("g").remove();
+
         const year = node.selectAll("g")
             .data(years)
             .join("g")
@@ -110,9 +112,10 @@ export default class SightsVisImpl {
             .attr("height", this.cellSize - 1)
             .attr("x", d => this.timeWeek.count(d3.timeYear(new Date(d.key)), new Date(d.key)) * this.cellSize + 0.5 + new Date(d.key).getMonth()*10)
             .attr("y", d => this.countDay(new Date(d.key)) * this.cellSize + 0.5)
-            .attr("fill", d => this.getColorOfAverageTime(d))
+            .attr("fill", d => this.getColorIfCorrectBUK(d))
             .append("title")
             .text(d => `${d.key}: ${d.values.length}`);
+
 
         const month = year.append("g")
             .selectAll("g")

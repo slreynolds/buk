@@ -4,7 +4,7 @@ import VisImpl from './VisImpl';
 /**
  * React-Wrapper around a D3 component
  */
-export default class SightsVis extends Component {
+export default class BukVis extends Component {
     constructor(props) {
         super(props);
         this.container = null;
