@@ -84,13 +84,15 @@ class Index extends Component {
       width: 1400,
       files: [],
       data: null,
+      vistype: 1
     };
   }
 
   getChartSettings(){
     return {
       width: this.state.width,
-      height: this.state.height
+      height: this.state.height,
+      vistype: this.state.vistype
     }
   }
 
@@ -165,11 +167,12 @@ class Index extends Component {
                 </div>
               }
               <React.Fragment>
-                <img src='BUK.jpg' alt="Logo" />
+                <img src='BUK.jpg' alt="Logo"/>
                 <Typography variant="h4">
                   BUK
                 </Typography>
                 {this.renderDropzone()}
+                {this.renderVisTypeSelection()}
               </React.Fragment>
               <Vis data={data ? data : bukdata} settings={chartsettubgs} />
             </div>
@@ -177,6 +180,29 @@ class Index extends Component {
         </Dropzone>
       </div>
     );
+  }
+
+  renderVisTypeSelection(){
+    const { vistype } = this.state;
+    const { classes } = this.props;
+    return (
+      <FormControl className={classes.formControl}>
+        <InputLabel htmlFor="age-simple">Vis Type</InputLabel>
+        <Select
+          value={vistype}
+          onChange={e => this.setState({vistype: e.target.value})}
+          inputProps={{
+            name: 'age',
+            id: 'age-simple',
+          }}
+        >
+          <MenuItem value={1}>Correct BUK</MenuItem>
+          <MenuItem value={2}>Timescale</MenuItem>
+          <MenuItem value={3}>Amount</MenuItem>
+          <MenuItem value={4}>Earliest BUKer</MenuItem>
+        </Select>
+      </FormControl>
+      );
   }
 }
 

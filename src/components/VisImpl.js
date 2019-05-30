@@ -16,6 +16,7 @@ export default class BukVisImpl {
         this.data = this.formatData(data);
         this.selection = selection;
 
+        this.node.selectAll("g").remove();
         this.render();
     }
 
@@ -78,10 +79,6 @@ export default class BukVisImpl {
             .entries(days)
             .reverse();
 
-        console.log(years);
-
-        node.selectAll("g").remove();
-
         const year = node.selectAll("g")
             .data(years)
             .join("g")
@@ -105,14 +102,15 @@ export default class BukVisImpl {
             .text(this.formatDay);
 
         year.append("g")
-            .selectAll("rect")
+            .selectAll(this.getElementType())
             .data(d => d.values)
-            .join("rect")
+            .join(this.getElementType())
             .attr("width", this.cellSize - 1)
             .attr("height", this.cellSize - 1)
             .attr("x", d => this.timeWeek.count(d3.timeYear(new Date(d.key)), new Date(d.key)) * this.cellSize + 0.5 + new Date(d.key).getMonth()*10)
             .attr("y", d => this.countDay(new Date(d.key)) * this.cellSize + 0.5)
-            .attr("fill", d => this.getColorIfCorrectBUK(d))
+            .attr("fill", d => this.getTypeOfVis(d))
+            .attr("xlink:href", d => this.getImageType(d))
             .append("title")
             .text(d => `${d.key}: ${d.values.length}`);
 
@@ -128,65 +126,29 @@ export default class BukVisImpl {
             .text(this.formatMonth);
     }
 
-    // copied a lot from https://beta.observablehq.com/@mbostock/d3-calendar-view
-    renderFirstPersonBUKed(data, node){
-        let t = this.getTransition();
-        let height = this.cellSize * 9;
+    getElementType(d){
+        if(this.settings.vistype === 4)
+            return "image";
+        return "rect";
+    }
 
-        const days = d3.nest()
-            .key(d => d.parsedDate)
-            .entries(data);
+    getImageType(d){
+        if(this.settings.vistype === 4)
+            return this.getImageHref(d);
+        return "";
+    }
 
-        const years = d3.nest()
-            .key(d => new Date(d.key).getFullYear())
-            .entries(days)
-            .reverse();
-
-            console.log(years);
-
-        const year = node.selectAll("g")
-            .data(years)
-            .join("g")
-            .attr("transform", (d, i) => `translate(40,${height * i + this.cellSize * 1.5})`);
-
-        year.append("text")
-            .attr("x", -5)
-            .attr("y", -5)
-            .attr("font-weight", "bold")
-            .attr("text-anchor", "end")
-            .text(d => d.key);
-
-        year.append("g")
-            .attr("text-anchor", "end")
-            .selectAll("text")
-            .data(d3.range(7).map(i => new Date(1995, 0, i)))
-            .join("text")
-            .attr("x", -5)
-            .attr("y", d => (this.countDay(d) + 0.5) * this.cellSize)
-            .attr("dy", "0.31em")
-            .text(this.formatDay);
-
-        year.append("g")
-            .selectAll("image")
-            .data(d => d.values)
-            .join("image")
-            .attr("width", this.cellSize - 1)
-            .attr("height", this.cellSize - 1)
-            .attr("x", d => this.timeWeek.count(d3.timeYear(new Date(d.key)), new Date(d.key)) * this.cellSize + 0.5)
-            .attr("y", d => this.countDay(new Date(d.key)) * this.cellSize + 0.5)
-            .attr("xlink:href", d => "")
-            .append("title")
-            .text(d => `${d.key}: ${d.values.length} - ${d.values[0].user}`);
-
-        const month = year.append("g")
-            .selectAll("g")
-            .data(d => d3.timeMonths(d3.timeMonth(new Date(d.values[0].key)), new Date(d.values[d.values.length - 1].key)))
-            .join("g");
-
-        month.append("text")
-            .attr("x", d => this.timeWeek.count(d3.timeYear(d), this.timeWeek.ceil(d)) * this.cellSize + 2)
-            .attr("y", -5)
-            .text(this.formatMonth);
+    getTypeOfVis(d){
+        switch(this.settings.vistype){
+            case 1: //Correct BUK
+                return this.getColorIfCorrectBUK(d);
+            case 2: //Timescale
+                return this.getColorOfAverageTime(d);
+            case 3: //Amount
+                return this.getColorOfBUKCount(d);
+            case 4: //Earliest BUKer
+                return "#00000066";
+        }
     }
 
     getColorOfBUKCount(d){
@@ -212,7 +174,7 @@ export default class BukVisImpl {
     }
 
     getImageHref(d){
-        return d.values[0] ? d.values[0].user + ".jpg" : "";
+        return d.values[0] && d.values[0].user[0] !== "+" ? d.values[0].user.split(" ")[0] + ".jpg" : "buk.jpg";
     }
 
     getTransition(){
